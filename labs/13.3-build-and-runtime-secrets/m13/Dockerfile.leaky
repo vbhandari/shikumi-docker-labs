@@ -1,0 +1,4 @@
+# syntax=docker/dockerfile:1
+FROM alpine:3.24
+ARG API_TOKEN
+RUN echo "using token of length ${#API_TOKEN}" > /used.txt

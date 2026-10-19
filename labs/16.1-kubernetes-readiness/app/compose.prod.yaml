@@ -1,0 +1,79 @@
+name: shikumi-prod
+
+services:
+  api:
+    image: localhost:5001/shikumi-api:3.0.0
+    build:
+      context: .
+    ports:
+      - "127.0.0.1:8090:5000"
+    environment:
+      REDIS_HOST: redis
+      MESSAGE: hello from production
+    secrets: [api_token]
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    user: "10001:10001"
+    init: true
+    stop_grace_period: 20s
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: 256M
+          pids: 100
+    logging:
+      driver: local
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:5000/healthz', timeout=2)"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks: [frontend, backend]
+
+  redis:
+    image: redis:8.8-alpine          # pin with @sha256:... in real deployments
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis-data:/data
+    read_only: true
+    cap_drop: [ALL]
+    cap_add: [SETUID, SETGID]
+    security_opt: ["no-new-privileges:true"]
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: 256M
+    logging:
+      driver: local
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks: [backend]
+
+networks:
+  frontend: {}
+  backend:
+    internal: true
+
+volumes:
+  redis-data:
+
+secrets:
+  api_token:
+    file: ./secrets/api_token.txt

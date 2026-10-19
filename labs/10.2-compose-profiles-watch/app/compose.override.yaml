@@ -1,0 +1,16 @@
+services:
+  api:
+    environment:
+      MESSAGE: dev override active
+    develop:
+      watch:
+        - action: sync+restart
+          path: ./app.py
+          target: /app/app.py
+        - action: rebuild
+          path: ./requirements.txt
+  redis-ui:
+    image: redis:8.8-alpine
+    profiles: [debug]
+    command: ["sh", "-c", "while true; do redis-cli -h redis info keyspace; sleep 10; done"]
+    depends_on: [redis]

@@ -1,0 +1,22 @@
+# Learner/runtime artifacts - never commit these
+.env
+secrets/
+*.tar
+*.tgz
+token.txt
+events.txt
+marker.txt
+backups/
+empty/
+owned/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Editors / OS
+.DS_Store
+*.swp
+.idea/
+.vscode/
